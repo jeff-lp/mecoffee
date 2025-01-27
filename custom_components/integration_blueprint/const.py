@@ -11,7 +11,7 @@ from homeassistant.const import UnitOfTemperature
 
 LOGGER: Logger = getLogger(__package__)
 
-DOMAIN = "mecoffee"
+DOMAIN = "integration_blueprint"
 ATTRIBUTION = "Data provided by ME Coffee Machine"
 
 # Bluetooth service and characteristic UUIDs

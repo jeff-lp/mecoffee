@@ -1,5 +1,5 @@
 {
-  "domain": "mecoffee",
+  "domain": "integration_blueprint",
   "name": "ME Coffee Machine",
   "codeowners": [
     "@jeff_lp_"
