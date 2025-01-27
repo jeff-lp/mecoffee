@@ -17,6 +17,7 @@ from homeassistant.components.bluetooth.passive_update_processor import (
     PassiveBluetoothProcessorEntity,
 )
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -49,12 +50,12 @@ async def async_setup_entry(
     async_add_entities(sensors, True)
 
 
-class MeCoffeeSensor(SensorEntity):
+class MeCoffeeSensor(CoordinatorEntity, SensorEntity):
     """ME Coffee Machine sensor."""
 
     def __init__(self, coordinator: MeCoffeeDataUpdateCoordinator, entity_description):
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self.entity_description = entity_description
         self._attr_unique_id = f"mecoffee_{entity_description.key}"
         self._attr_device_info = {

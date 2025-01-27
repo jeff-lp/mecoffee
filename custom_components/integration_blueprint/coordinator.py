@@ -43,11 +43,15 @@ class MeCoffeeDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data."""
-        return {
-            "temperature": self._temperature,
-            "power": self._power,
-            "shot_duration": self._shot_duration,
-        }
+        try:
+            return {
+                "temperature": self._temperature,
+                "power": self._power,
+                "shot_duration": self._shot_duration,
+            }
+        except Exception as err:
+            LOGGER.error("Error updating data: %s", err)
+            raise
 
     def handle_bluetooth_data(self, data: bytes) -> None:
         """Handle received Bluetooth data."""
