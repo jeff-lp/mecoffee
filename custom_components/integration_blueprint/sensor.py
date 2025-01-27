@@ -34,13 +34,16 @@ async def async_setup_entry(
     """Set up ME Coffee Machine sensor based on a config entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     
-    async_add_entities(
-        MeCoffeeSensor(
-            coordinator=coordinator,
-            entity_description=description,
+    sensors = []
+    for description in SENSOR_TYPES:
+        LOGGER.debug("Setting up sensor: %s", description.key)
+        sensors.append(
+            MeCoffeeSensor(
+                coordinator=coordinator,
+                entity_description=description,
+            )
         )
-        for description in SENSOR_TYPES
-    )
+    async_add_entities(sensors)
 
 
 class MeCoffeeSensor(PassiveBluetoothProcessorEntity, SensorEntity):
@@ -62,6 +65,7 @@ class MeCoffeeSensor(PassiveBluetoothProcessorEntity, SensorEntity):
 
         try:
             message = data.decode('utf-8').strip()
+            LOGGER.debug("Received meCoffee message: %s", message)
             parts = message.split()
             
             if parts[0] == MSG_TEMPERATURE and len(parts) >= 4:

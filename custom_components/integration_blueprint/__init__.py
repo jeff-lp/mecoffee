@@ -53,6 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     def handle_bluetooth_event(hass: HomeAssistant, service_info) -> None:
         """Handle Bluetooth device detection."""
         LOGGER.debug("Detected meCoffee device: %s", service_info.address)
+        LOGGER.debug("Service info: %s", service_info)
         
     scanner.async_register_detection_callback(
         MECOFFEE_SERVICE_UUID,
