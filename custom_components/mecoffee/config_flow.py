@@ -28,6 +28,7 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         user_input: dict | None = None,
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
+        LOGGER.debug("Starting config flow step_user with input: %s", user_input)
         _errors = {}
         if user_input is not None:
             try:

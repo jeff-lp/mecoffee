@@ -16,12 +16,14 @@ class MeCoffeeDataUpdateCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the coordinator."""
+        LOGGER.debug("Initializing MeCoffeeDataUpdateCoordinator")
         super().__init__(
             hass,
             LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=1),
         )
+        LOGGER.debug("MeCoffeeDataUpdateCoordinator initialized")
         self._temperature: float | None = None
         self._power: float | None = None
         self._shot_duration: float | None = None
@@ -43,7 +45,10 @@ class MeCoffeeDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data."""
+        LOGGER.debug("Running data update")
         try:
+            LOGGER.debug("Current values - Temp: %s, Power: %s, Shot Duration: %s",
+                        self._temperature, self._power, self._shot_duration)
             return {
                 "temperature": self._temperature,
                 "power": self._power,

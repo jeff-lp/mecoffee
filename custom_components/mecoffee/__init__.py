@@ -42,13 +42,17 @@ PLATFORMS: list[Platform] = [
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up ME Coffee Machine from a config entry."""
+    LOGGER.debug("Starting async_setup_entry for ME Coffee Machine")
     scanner = async_get_scanner(hass)
+    LOGGER.debug("Got bluetooth scanner: %s", scanner)
     
     # Set up Bluetooth scanner
+    LOGGER.debug("Setting up Bluetooth scanner in ACTIVE mode")
     await async_setup_scanner(
         hass,
         {"scanner_mode": BluetoothScanningMode.ACTIVE},
     )
+    LOGGER.debug("Bluetooth scanner setup complete")
     
     # Start scanning for the coffee machine
     def handle_bluetooth_event(hass: HomeAssistant, service_info) -> None:
