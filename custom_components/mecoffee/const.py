@@ -1,6 +1,8 @@
 """Constants for ME Coffee Machine integration."""
 from dataclasses import dataclass
 from logging import Logger, getLogger
+from pathlib import Path
+import json
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -11,7 +13,11 @@ from homeassistant.const import UnitOfTemperature
 
 LOGGER: Logger = getLogger(__package__)
 
-DOMAIN = "integration_blueprint"
+MANIFEST_PATH = Path(__file__).parent / "manifest.json"
+with MANIFEST_PATH.open() as manifest_file:
+    manifest = json.load(manifest_file)
+    DOMAIN = manifest["domain"]
+
 ATTRIBUTION = "Data provided by ME Coffee Machine"
 
 # Bluetooth service and characteristic UUIDs

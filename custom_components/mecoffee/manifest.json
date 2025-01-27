@@ -1,14 +1,14 @@
 {
-  "domain": "integration_blueprint",
+  "domain": "mecoffee",
   "name": "ME Coffee Machine",
   "codeowners": [
     "@jeff_lp_"
   ],
   "config_flow": true,
   "dependencies": ["bluetooth"],
-  "documentation": "https://github.com/ludeeus/integration_blueprint",
+  "documentation": "https://github.com/jeff-lp/mecoffee",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/ludeeus/integration_blueprint/issues",
+  "issue_tracker": "https://github.com/jeff-lp/mecoffee/issues",
   "version": "0.1.0",
   "bluetooth": [
     {
