@@ -9,4 +9,5 @@ homeassistant:
 logger:
   default: info
   logs:
-    custom_components.mecoffe: debug
+    custom_components.mecoffee: debug
+    homeassistant.components.bluetooth: debug

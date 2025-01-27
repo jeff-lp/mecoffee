@@ -49,6 +49,7 @@ class MeCoffeeDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             LOGGER.debug("Current values - Temp: %s, Power: %s, Shot Duration: %s",
                         self._temperature, self._power, self._shot_duration)
+            LOGGER.debug("Attempting to update data...")
             return {
                 "temperature": self._temperature,
                 "power": self._power,
