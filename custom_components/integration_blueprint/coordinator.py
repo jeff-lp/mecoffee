@@ -1,32 +1,72 @@
-"""DataUpdateCoordinator for integration_blueprint."""
-
+"""DataUpdateCoordinator for meCoffee."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from datetime import timedelta
+import asyncio
+from typing import Any
 
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.const import LOGGER
 
-from .api import (
-    IntegrationBlueprintApiClientAuthenticationError,
-    IntegrationBlueprintApiClientError,
-)
+from .const import DOMAIN, MECOFFEE_CHAR_UUID
 
-if TYPE_CHECKING:
-    from .data import IntegrationBlueprintConfigEntry
+class MeCoffeeDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching meCoffee data."""
 
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Initialize the coordinator."""
+        super().__init__(
+            hass,
+            LOGGER,
+            name=DOMAIN,
+            update_interval=timedelta(seconds=1),
+        )
+        self._temperature: float | None = None
+        self._power: float | None = None
+        self._shot_duration: float | None = None
 
-# https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-class BlueprintDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching data from the API."""
+    @property
+    def temperature(self) -> float | None:
+        """Return the current temperature."""
+        return self._temperature
 
-    config_entry: IntegrationBlueprintConfigEntry
+    @property
+    def power(self) -> float | None:
+        """Return the current power."""
+        return self._power
 
-    async def _async_update_data(self) -> Any:
-        """Update data via library."""
+    @property
+    def shot_duration(self) -> float | None:
+        """Return the current shot duration."""
+        return self._shot_duration
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Update data."""
+        return {
+            "temperature": self._temperature,
+            "power": self._power,
+            "shot_duration": self._shot_duration,
+        }
+
+    def handle_bluetooth_data(self, data: bytes) -> None:
+        """Handle received Bluetooth data."""
         try:
-            return await self.config_entry.runtime_data.client.async_get_data()
-        except IntegrationBlueprintApiClientAuthenticationError as exception:
-            raise ConfigEntryAuthFailed(exception) from exception
-        except IntegrationBlueprintApiClientError as exception:
-            raise UpdateFailed(exception) from exception
+            message = data.decode('utf-8').strip()
+            LOGGER.debug("Processing meCoffee message: %s", message)
+            parts = message.split()
+
+            if not parts:
+                return
+
+            if parts[0] == "tmp" and len(parts) >= 4:
+                self._temperature = float(parts[3]) * 0.01  # Convert to Celsius
+            elif parts[0] == "pid" and len(parts) >= 5:
+                self._power = float(parts[1]) / 655.36  # Convert to percentage
+            elif parts[0] == "sht" and len(parts) >= 3:
+                self._shot_duration = float(parts[2]) / 1000  # Convert to seconds
+
+            self.async_set_updated_data(self._async_update_data())
+            
+        except (ValueError, IndexError, UnicodeDecodeError) as err:
+            LOGGER.warning("Error parsing meCoffee message: %s", err)

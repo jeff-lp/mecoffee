@@ -20,7 +20,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, SENSOR_TYPES, TEMPERATURE_CHAR_UUID
+from .const import DOMAIN, SENSOR_TYPES
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -46,46 +46,28 @@ async def async_setup_entry(
     async_add_entities(sensors)
 
 
-class MeCoffeeSensor(PassiveBluetoothProcessorEntity, SensorEntity):
-    """ME Coffee Machine Bluetooth sensor."""
+class MeCoffeeSensor(SensorEntity):
+    """ME Coffee Machine sensor."""
 
-    def __init__(self, coordinator, entity_description):
+    def __init__(self, coordinator: MeCoffeeDataUpdateCoordinator, entity_description):
         """Initialize the sensor."""
-        super().__init__(coordinator, entity_description)
+        self.coordinator = coordinator
         self.entity_description = entity_description
+        self._attr_unique_id = f"mecoffee_{entity_description.key}"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, "mecoffee_device")},
+            "name": "ME Coffee Machine",
+            "manufacturer": "ME Coffee",
+            "model": "ME Coffee Machine",
+        }
 
-    def _handle_coordinator_update(self, update: PassiveBluetoothDataUpdate) -> None:
-        """Handle updated data from the coordinator."""
-        if not update.advertisement.service_data:
-            return
-
-        data = update.advertisement.service_data.get(MECOFFEE_CHAR_UUID)
-        if not data:
-            return
-
-        try:
-            message = data.decode('utf-8').strip()
-            LOGGER.debug("Received meCoffee message: %s", message)
-            parts = message.split()
-            
-            if parts[0] == MSG_TEMPERATURE and len(parts) >= 4:
-                # Format: tmp <uptime> <setpoint> <current_temp> <aux> OK
-                if self.entity_description.key == "temperature":
-                    self._attr_native_value = float(parts[3]) * TEMPERATURE_MULTIPLIER
-            
-            elif parts[0] == MSG_PID and len(parts) >= 5:
-                # Format: pid <p> <i> <d> <active> OK
-                if self.entity_description.key == "power":
-                    p_value = float(parts[1]) / 655.36
-                    self._attr_native_value = p_value
-            
-            elif parts[0] == MSG_SHOT and len(parts) >= 3:
-                # Format: sht <uptime> <duration> OK
-                if self.entity_description.key == "shot_duration":
-                    duration = float(parts[2]) / 1000  # Convert ms to seconds
-                    self._attr_native_value = duration
-
-        except (ValueError, IndexError, UnicodeDecodeError) as err:
-            LOGGER.warning("Error parsing meCoffee message: %s", err)
-            
-        super()._handle_coordinator_update(update)
+    @property
+    def native_value(self) -> float | None:
+        """Return the sensor value."""
+        if self.entity_description.key == "temperature":
+            return self.coordinator.temperature
+        elif self.entity_description.key == "power":
+            return self.coordinator.power
+        elif self.entity_description.key == "shot_duration":
+            return self.coordinator.shot_duration
+        return None

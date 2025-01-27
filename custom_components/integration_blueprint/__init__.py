@@ -25,6 +25,7 @@ from .const import (
     MECOFFEE_SERVICE_UUID,
     MECOFFEE_CHAR_UUID,
 )
+from .coordinator import MeCoffeeDataUpdateCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -60,7 +61,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         lambda service_info: handle_bluetooth_event(hass, service_info),
     )
     
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = scanner
+    coordinator = MeCoffeeDataUpdateCoordinator(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
