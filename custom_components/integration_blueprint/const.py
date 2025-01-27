@@ -15,8 +15,17 @@ DOMAIN = "mecoffee"
 ATTRIBUTION = "Data provided by ME Coffee Machine"
 
 # Bluetooth service and characteristic UUIDs
-TEMPERATURE_SERVICE_UUID = "00000001-0000-1000-8000-00805f9b34fb"  # Replace with actual UUID
-TEMPERATURE_CHAR_UUID = "00000002-0000-1000-8000-00805f9b34fb"    # Replace with actual UUID
+# Bluetooth UUIDs for meCoffee
+MECOFFEE_SERVICE_UUID = "0000180f-0000-1000-8000-00805f9b34fb"
+MECOFFEE_CHAR_UUID = "00002a19-0000-1000-8000-00805f9b34fb"
+
+# Message types
+MSG_TEMPERATURE = "tmp"
+MSG_PID = "pid"
+MSG_SHOT = "sht"
+
+# Message parsing
+TEMPERATURE_MULTIPLIER = 0.01  # Temperature values are in °C/100
 
 @dataclass
 class MeCoffeeSensorEntityDescription(SensorEntityDescription):

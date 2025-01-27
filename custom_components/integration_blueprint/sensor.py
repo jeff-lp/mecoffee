@@ -45,9 +45,35 @@ class MeCoffeeSensor(PassiveBluetoothProcessorEntity, SensorEntity):
 
     def _handle_coordinator_update(self, update: PassiveBluetoothDataUpdate) -> None:
         """Handle updated data from the coordinator."""
-        if self.entity_description.key == "temperature":
-            # Convert the raw temperature data to Celsius
-            raw_temp = update.device.service_data.get(TEMPERATURE_CHAR_UUID)
-            if raw_temp is not None:
-                self._attr_native_value = int.from_bytes(raw_temp, "little") / 100.0
+        if not update.advertisement.service_data:
+            return
+
+        data = update.advertisement.service_data.get(MECOFFEE_CHAR_UUID)
+        if not data:
+            return
+
+        try:
+            message = data.decode('utf-8').strip()
+            parts = message.split()
+            
+            if parts[0] == MSG_TEMPERATURE and len(parts) >= 4:
+                # Format: tmp <uptime> <setpoint> <current_temp> <aux> OK
+                if self.entity_description.key == "temperature":
+                    self._attr_native_value = float(parts[3]) * TEMPERATURE_MULTIPLIER
+            
+            elif parts[0] == MSG_PID and len(parts) >= 5:
+                # Format: pid <p> <i> <d> <active> OK
+                if self.entity_description.key == "power":
+                    p_value = float(parts[1]) / 655.36
+                    self._attr_native_value = p_value
+            
+            elif parts[0] == MSG_SHOT and len(parts) >= 3:
+                # Format: sht <uptime> <duration> OK
+                if self.entity_description.key == "shot_duration":
+                    duration = float(parts[2]) / 1000  # Convert ms to seconds
+                    self._attr_native_value = duration
+
+        except (ValueError, IndexError, UnicodeDecodeError) as err:
+            LOGGER.warning("Error parsing meCoffee message: %s", err)
+            
         super()._handle_coordinator_update(update)
