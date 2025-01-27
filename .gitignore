@@ -18,3 +18,5 @@ config/*
 !config/configuration.yaml
 .aider*
 .env
+
+.DS_Store
