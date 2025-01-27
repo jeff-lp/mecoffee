@@ -33,18 +33,20 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up ME Coffee Machine sensor based on a config entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: MeCoffeeDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    LOGGER.debug("Setting up sensors with coordinator: %s", coordinator)
     
     sensors = []
     for description in SENSOR_TYPES:
-        LOGGER.debug("Setting up sensor: %s", description.key)
-        sensors.append(
-            MeCoffeeSensor(
-                coordinator=coordinator,
-                entity_description=description,
-            )
+        LOGGER.debug("Setting up sensor: %s with description: %s", description.key, description)
+        sensor = MeCoffeeSensor(
+            coordinator=coordinator,
+            entity_description=description,
         )
-    async_add_entities(sensors)
+        sensors.append(sensor)
+        LOGGER.debug("Created sensor: %s", sensor)
+    
+    async_add_entities(sensors, True)
 
 
 class MeCoffeeSensor(SensorEntity):
