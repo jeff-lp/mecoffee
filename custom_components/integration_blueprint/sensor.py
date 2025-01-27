@@ -1,57 +1,53 @@
-"""Sensor platform for integration_blueprint."""
-
+"""Sensor platform for ME Coffee Machine."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from bleak import BleakClient
+from homeassistant.components.bluetooth.passive_update_processor import (
+    PassiveBluetoothDataUpdate,
+    PassiveBluetoothProcessorEntity,
+)
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .entity import IntegrationBlueprintEntity
+from .const import DOMAIN, SENSOR_TYPES, TEMPERATURE_CHAR_UUID
 
 if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-    from .coordinator import BlueprintDataUpdateCoordinator
-    from .data import IntegrationBlueprintConfigEntry
-
-ENTITY_DESCRIPTIONS = (
-    SensorEntityDescription(
-        key="integration_blueprint",
-        name="Integration Sensor",
-        icon="mdi:format-quote-close",
-    ),
-)
+    from homeassistant.config_entries import ConfigEntry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,  # noqa: ARG001 Unused function argument: `hass`
-    entry: IntegrationBlueprintConfigEntry,
+    hass: HomeAssistant,
+    entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
+    """Set up ME Coffee Machine sensor based on a config entry."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    
     async_add_entities(
-        IntegrationBlueprintSensor(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
+        MeCoffeeSensor(
+            coordinator=coordinator,
+            entity_description=description,
         )
-        for entity_description in ENTITY_DESCRIPTIONS
+        for description in SENSOR_TYPES
     )
 
 
-class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
-    """integration_blueprint Sensor class."""
+class MeCoffeeSensor(PassiveBluetoothProcessorEntity, SensorEntity):
+    """ME Coffee Machine Bluetooth sensor."""
 
-    def __init__(
-        self,
-        coordinator: BlueprintDataUpdateCoordinator,
-        entity_description: SensorEntityDescription,
-    ) -> None:
-        """Initialize the sensor class."""
-        super().__init__(coordinator)
+    def __init__(self, coordinator, entity_description):
+        """Initialize the sensor."""
+        super().__init__(coordinator, entity_description)
         self.entity_description = entity_description
 
-    @property
-    def native_value(self) -> str | None:
-        """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+    def _handle_coordinator_update(self, update: PassiveBluetoothDataUpdate) -> None:
+        """Handle updated data from the coordinator."""
+        if self.entity_description.key == "temperature":
+            # Convert the raw temperature data to Celsius
+            raw_temp = update.device.service_data.get(TEMPERATURE_CHAR_UUID)
+            if raw_temp is not None:
+                self._attr_native_value = int.from_bytes(raw_temp, "little") / 100.0
+        super()._handle_coordinator_update(update)
