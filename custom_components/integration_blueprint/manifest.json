@@ -2,7 +2,7 @@
   "domain": "mecoffee",
   "name": "ME Coffee Machine",
   "codeowners": [
-    "@ludeeus"
+    "@jeff_lp_"
   ],
   "config_flow": true,
   "dependencies": ["bluetooth"],
