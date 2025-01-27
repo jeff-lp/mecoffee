@@ -4,6 +4,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bleak import BleakClient
+from homeassistant.const import LOGGER
+from .const import (
+    MECOFFEE_CHAR_UUID,
+    MSG_TEMPERATURE,
+    MSG_PID,
+    MSG_SHOT,
+    TEMPERATURE_MULTIPLIER,
+)
 from homeassistant.components.bluetooth.passive_update_processor import (
     PassiveBluetoothDataUpdate,
     PassiveBluetoothProcessorEntity,

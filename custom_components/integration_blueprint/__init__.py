@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.bluetooth import (
     BluetoothScanningMode,
     async_setup_scanner,
@@ -49,15 +50,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     
     # Start scanning for the coffee machine
+    def handle_bluetooth_event(hass: HomeAssistant, service_info) -> None:
+        """Handle Bluetooth device detection."""
+        LOGGER.debug("Detected meCoffee device: %s", service_info.address)
+        
     scanner.async_register_detection_callback(
         MECOFFEE_SERVICE_UUID,
         lambda service_info: handle_bluetooth_event(hass, service_info),
     )
     
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = scanner
-
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
